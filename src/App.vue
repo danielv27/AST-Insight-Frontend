@@ -30,7 +30,7 @@ async function getSuggestions() {
     headers: {
         'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ code: program })
+    body: JSON.stringify({ code: program.value })
   })
 }
 
