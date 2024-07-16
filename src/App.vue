@@ -8,14 +8,16 @@
     <div class="right-pane">
       <div v-if="loading">Loading...</div>
       <div v-else-if="error">
-        <div>Something went wrong...</div> 
-        <div>Stack trace:</div> 
-        <CodeEditor :height="250" disabled v-model="error"/>
+        <div>{{ error }}</div> 
+        <div v-if="errorTrace">
+          <div>Stack trace:</div>
+          <CodeEditor :height="252" disabled v-model="errorTrace"/>
+        </div> 
       </div>
       
       <div class="suggestion-wrapper" v-else-if="suggestions">
         <div v-for="suggestion of suggestions">
-          <CodeEditor :height="150" disabled v-model="suggestion.code"/>
+          <CodeEditor :line-to-select="suggestion.line" :height="150" disabled v-model="suggestion.code"/>
           <div>{{ suggestion.description }}</div>
         </div>
       </div>
@@ -30,19 +32,40 @@ import CodeEditor from './components/CodeEditor.vue'
 interface Suggestion {
   code: string;
   description: string;
+  line: number;
 }
 
 const program = ref(
-`int main()
+`#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void vulnerable_function() 
 {
-  int buf[32];
-  int i = 45;
-  buf[i] = 9;
+    char *buffer = malloc(12);
+    for(int i = 0; i < 30; i++)
+    {
+        buffer[i - 5] = 'b';
+    }
+  
+    char buffer2[16];
+    int j = 0;
+    while(j < 45){
+        buffer2[j - 5] = 'b';
+        j++;
+    }
+
+}
+
+int main(int argc, char *argv[]) {
+    vulnerable_function(argv[1]);
+    return 0;
 }`
 );
 
 const loading = ref(false);
 const error = ref('');
+const errorTrace = ref('');
 const suggestions = ref<Suggestion[]>([]);
 
 
@@ -55,14 +78,24 @@ function getSuggestions() {
         'Content-Type': 'application/json'
     },
     body: JSON.stringify({ code: program.value })
-  }).then(async (response) => {
+  })
+  .then(async (response) => {
+    console.log(response.status)
     const json = await response.json();
     if(response.ok){
       suggestions.value = json;
       error.value = '';
+      errorTrace.value = '';
     } else {
-      error.value = json.error;
+      error.value = 'Something went wrong...';
+      errorTrace.value = json.error;
     }
+    loading.value = false;
+  })
+  .catch((err) => {
+    console.error('Network error:', err);
+    error.value = 'A network error occurred. Please try again later.';
+    errorTrace.value = '';
     loading.value = false;
   });
 }
@@ -78,6 +111,9 @@ function getSuggestions() {
 
 .left-pane {
   width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .right-pane {
