@@ -1,23 +1,40 @@
 <template>
   <h1>AST Insight</h1>
+  <div>
+    <div>
+      TODO:
+    </div>
+    <div>
+      Create a single 'page' per vulnerability. In the example case one for each buffer (buffer and buffer2)
+    </div>
+    <div>
+      ADD suggestion to correct the actual subscript used to access the array
+    </div>
+    <div>
+      Implement case where 0 suggestions are returned render something
+    </div>
+  </div>
   <div class="content-wrapper">
     <div class="left-pane">
-      <CodeEditor v-model="program"/>
+      <CodeEditor v-model="program" />
       <button @click="getSuggestions">Analyze</button>
+      <button :class="{ green: isJuliet, red: !isJuliet }" @click="isJuliet = !isJuliet">Use Juliet</button>
     </div>
     <div class="right-pane">
       <div v-if="loading">Loading...</div>
       <div v-else-if="error">
-        <div>{{ error }}</div> 
+        <div>{{ error }}</div>
         <div v-if="errorTrace">
           <div>Stack trace:</div>
-          <CodeEditor :height="252" disabled v-model="errorTrace"/>
-        </div> 
+          <CodeEditor :height="252" disabled v-model="errorTrace" />
+        </div>
       </div>
-      
-      <div class="suggestion-wrapper" v-else-if="suggestions">
+      <div v-if="noSuggestionsFound">
+        No suggestions found
+      </div>
+      <div class="suggestion-wrapper" v-else>
         <div v-for="suggestion of suggestions">
-          <CodeEditor :line-to-select="suggestion.line" :height="150" disabled v-model="suggestion.code"/>
+          <CodeEditor :line-to-select="suggestion.line" :height="150" disabled v-model="suggestion.code" />
           <div>{{ suggestion.description }}</div>
         </div>
       </div>
@@ -36,7 +53,7 @@ interface Suggestion {
 }
 
 const program = ref(
-`#include <stdio.h>
+  `#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -67,43 +84,54 @@ const loading = ref(false);
 const error = ref('');
 const errorTrace = ref('');
 const suggestions = ref<Suggestion[]>([]);
+const isJuliet = ref(false);
 
+const noSuggestionsFound = ref(false);
+
+
+const requestBody = () => ({
+  code: program.value,
+  juliet: isJuliet.value,
+});
 
 function getSuggestions() {
   loading.value = true;
+  noSuggestionsFound.value = false;
   const url = 'http://127.0.0.1:5000/analyze';
   fetch(url, {
     method: 'POST',
     headers: {
-        'Content-Type': 'application/json'
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ code: program.value })
+    body: JSON.stringify(requestBody())
   })
-  .then(async (response) => {
-    console.log(response.status)
-    const json = await response.json();
-    if(response.ok){
-      suggestions.value = json;
-      error.value = '';
+    .then(async (response) => {
+      console.log(response.status)
+      const json = await response.json();
+      if (response.ok) {
+        suggestions.value = json;
+        if (suggestions.value.length == 0) {
+          noSuggestionsFound.value = true;
+        }
+        error.value = '';
+        errorTrace.value = '';
+      } else {
+        error.value = 'Something went wrong...';
+        errorTrace.value = json.error;
+      }
+      loading.value = false;
+    })
+    .catch((err) => {
+      console.error(err);
+      error.value = 'An error occurred.';
       errorTrace.value = '';
-    } else {
-      error.value = 'Something went wrong...';
-      errorTrace.value = json.error;
-    }
-    loading.value = false;
-  })
-  .catch((err) => {
-    console.error('Network error:', err);
-    error.value = 'A network error occurred. Please try again later.';
-    errorTrace.value = '';
-    loading.value = false;
-  });
+      loading.value = false;
+    });
 }
 
 </script>
 
 <style scoped>
-
 .content-wrapper {
   display: flex;
   gap: 12px;
@@ -126,4 +154,13 @@ function getSuggestions() {
   gap: 12px;
 }
 
+button.green {
+  background-color: green;
+  color: white
+}
+
+button.red {
+  background-color: red;
+  color: white;
+}
 </style>
