@@ -7,12 +7,6 @@
     <div>
       Create a single 'page' per vulnerability. In the example case one for each buffer (buffer and buffer2)
     </div>
-    <div>
-      ADD suggestion to correct the actual subscript used to access the array
-    </div>
-    <div>
-      Implement case where 0 suggestions are returned render something
-    </div>
   </div>
   <div class="content-wrapper">
     <div class="left-pane">
@@ -29,7 +23,7 @@
           <CodeEditor :height="252" disabled v-model="errorTrace" />
         </div>
       </div>
-      <div v-if="noSuggestionsFound">
+      <div v-else-if="noSuggestionsFound">
         No suggestions found
       </div>
       <div class="suggestion-wrapper" v-else>
