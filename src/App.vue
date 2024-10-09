@@ -1,13 +1,5 @@
 <template>
   <h1>AST Insight</h1>
-  <div>
-    <div>
-      TODO:
-    </div>
-    <div>
-      Create a single 'page' per vulnerability. In the example case one for each buffer (buffer and buffer2)
-    </div>
-  </div>
   <div class="content-wrapper">
     <div class="left-pane">
       <CodeEditor v-model="program" />
@@ -56,13 +48,13 @@ void vulnerable_function()
     char *buffer = malloc(12);
     for(int i = 0; i < 30; i++)
     {
-        buffer[i - 5] = 'b';
+        buffer[i] = 'b';
     }
   
     char buffer2[16];
     int j = 0;
     while(j < 45){
-        buffer2[j - 5] = 'b';
+        buffer2[j] = 'b';
         j++;
     }
 
