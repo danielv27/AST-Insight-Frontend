@@ -1,5 +1,11 @@
-# Vue 3 + TypeScript + Vite
+# AST Insight Frontend
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+This Vue.js application serves as a frontend application for [AST Insight](https://github.com/danielv27/AST-Insight)
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Running the application
+Run:
+```bash
+npm run dev
+```
+
+All other details can be found in the main [AST Insight](https://github.com/danielv27/AST-Insight) project.
